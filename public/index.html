@@ -20,9 +20,43 @@
         </div>
         <script>
             let user;
-            let mySocket
+            let mySocket;
+            let isConnected = false;
+
             function connect() {
-                // TO IMPLEMENT
+                if (isConnected) return;
+                mySocket = new WebSocket('ws://localhost:3001');
+
+                mySocket.onopen = (event) => {
+                    isConnected = true;
+                    console.log('ça démarre');
+                    console.info('WebSocket connection opened ', event);
+                };
+
+                mySocket.onerror = (error) => {
+                    isConnected = false;
+                    console.error('WebSocket erreur survenue:', error);
+                };
+
+                mySocket.onclose = () => {
+                    isConnected = false;
+                    console.log('ça a fermé');
+                    console.info('WebSocket connection closed');
+                };
+
+                mySocket.onmessage = (messageEvent) => {
+                    console.info('Message event received from server: ', messageEvent.data);
+                    let data;
+                    try {
+                        data = JSON.parse(messageEvent.data);
+                    } catch (error) {
+                        console.error(error.message);
+                    }
+                    const newDiv = document.createElement('div');
+                    newDiv.append(`[${data.user}] ${data.message}`);
+                    document.getElementsByClassName('chat-content')[0].appendChild(newDiv);
+                }
+
             }
 
             function connectUser() {
@@ -37,7 +71,13 @@
             function sendMessage() {
                 const message = document.getElementsByName('chat-message')[0].value;
                 // TO IMPLEMENT
-                document.getElementsByName('chat-message')[0].value = '';
+                // document.getElementsByName('chat-message')[0].value = '';
+                mySocket.send(JSON.stringify({
+                    user,
+                    message
+                }));
+
+
             }
         </script>
     </body>
